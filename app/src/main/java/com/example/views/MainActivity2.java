@@ -30,6 +30,8 @@ public class MainActivity2 extends AppCompatActivity {
         NavController navController = navHostFragment.getNavController();
 
         NavigationUI.setupWithNavController(binding.navView, navController);
+
+
     }
 
     @Override
