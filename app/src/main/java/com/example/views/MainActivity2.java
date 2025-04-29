@@ -1,6 +1,9 @@
 package com.example.views;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
@@ -30,7 +33,6 @@ public class MainActivity2 extends AppCompatActivity {
         NavController navController = navHostFragment.getNavController();
 
         NavigationUI.setupWithNavController(binding.navView, navController);
-
 
     }
 
