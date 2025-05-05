@@ -21,7 +21,6 @@ import androidx.appcompat.app.AppCompatActivity;
 public class MainActivity extends AppCompatActivity {
 
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,19 +40,12 @@ public class MainActivity extends AppCompatActivity {
                 frameAnimation.start();
             }
         });
-
-
-
     }
 
-
+    // Hueta
     public void startActivity(View v) {
-
-
         Intent intent = new Intent(this, MainActivity2.class);
         startActivity(intent);
-
-
     }
 
 
