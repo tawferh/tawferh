@@ -11,37 +11,76 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.example.views.FindPlaceActivity;
-import com.example.views.MainActivity3;
-import com.example.views.data.api.RetrofitClient;
-import com.example.views.data.repository.EntertainmentRepository;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
-
+import com.example.views.data.manager.SearchManager;
 import com.example.views.databinding.FragmentHomeBinding;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.example.views.R;
+
+
+// Map import
 import com.yandex.mapkit.MapKitFactory;
 import com.yandex.mapkit.geometry.Point;
-import com.yandex.mapkit.map.CameraPosition;
 import com.yandex.mapkit.map.Map;
 import com.yandex.mapkit.mapview.MapView;
+import com.yandex.mapkit.map.ClusterListener;
+import com.yandex.mapkit.map.ClusterizedPlacemarkCollection;
+import com.yandex.mapkit.map.IconStyle;
+import com.yandex.mapkit.map.MapObjectTapListener;
+import com.yandex.mapkit.map.MapObjectCollection;
+import com.yandex.mapkit.map.PlacemarkMapObject;
+import com.yandex.runtime.image.ImageProvider;
+import com.yandex.runtime.ui_view.ViewProvider;
 
+// Search import
 import com.example.views.data.api.*;
 import com.example.views.data.repository.*;
 import com.example.views.data.model.*;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
+import java.util.Random;
 
 
-public class HomeFragment extends Fragment {
+public class HomeFragment extends Fragment implements SearchManager.SearchResultListener {
     private FragmentHomeBinding binding;
     private MapView mapView;
 
+
+    private SearchManager searchManager;
     private EditText searchInput;
     private FloatingActionButton searchButton;
-    private EntertainmentRepository repository;
+
+
+    MapObjectTapListener placemarkTapListener = (mapObject, point) -> {
+        Toast.makeText(this.getContext(),"Tapped the placemark: " + mapObject.getUserData(), Toast.LENGTH_LONG).show();
+        return true;
+    };
+    ClusterListener clusterListener = cluster -> {
+        List<PlacemarkType> placemarkTypes = new ArrayList<>();
+        for (PlacemarkMapObject placemark : cluster.getPlacemarks()) {
+            placemarkTypes.add(((PlacemarkUserData) Objects.requireNonNull(placemark.getUserData())).getType());
+        }
+
+        // Устанавливает внешний вид каждого кластера с использованием пользовательского представления
+        // которое отображает значки кластера
+        cluster.getAppearance().setView(
+                new ViewProvider(
+                        new ClusterView(this.getContext()) {{
+                            setData(placemarkTypes);
+                        }}
+                )
+        );
+        cluster.getAppearance().setZIndex(100f);
+        //cluster.addClusterTapListener(clusterTapListener);
+    };
 
 
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -50,117 +89,106 @@ public class HomeFragment extends Fragment {
         HomeViewModel homeViewModel =
                 new ViewModelProvider(this).get(HomeViewModel.class);
 
-
         binding = FragmentHomeBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
-
 
         final TextView textView = binding.textHome;
         homeViewModel.getText().observe(getViewLifecycleOwner(), textView::setText);
 
 
+        // взаимодействие с поисковой строкой
+        searchActivity();
+
+        // стартовое положение карты
+        startMapView();
+
+        return root;
+    }
+
+    private void startMapView() {
+        mapView = binding.mapview;
+        final Map map = mapView.getMapWindow().getMap();
+        map.move(GeometryProvider.startPosition);
+
+        MapObjectCollection collection = map.getMapObjects().addCollection();
+
+        //регистрация слушателя и лямда-функции
+        ClusterizedPlacemarkCollection clusterizedCollection = collection.addClusterizedPlacemarkCollection(clusterListener);
+
+        //структура [[цвет(ключ), картинка(значение)], [], ...]
+        HashMap<Object, Object> placemarkTypeToImageProvider = new HashMap<>();
+        placemarkTypeToImageProvider.put(PlacemarkType.BROWN, ImageProvider.fromResource(this.requireContext(), R.drawable.pin_brown));
+        placemarkTypeToImageProvider.put(PlacemarkType.GREEN, ImageProvider.fromResource(this.requireContext(), R.drawable.pin_green));
+        placemarkTypeToImageProvider.put(PlacemarkType.ORANGE, ImageProvider.fromResource(this.requireContext(), R.drawable.pin_orange));
+        placemarkTypeToImageProvider.put(PlacemarkType.PINK, ImageProvider.fromResource(this.requireContext(), R.drawable.pin_pink));
+        placemarkTypeToImageProvider.put(PlacemarkType.PURPLE, ImageProvider.fromResource(this.requireContext(), R.drawable.pin_purple));
+
+        //рисуем метки
+        for (int index = 0; index < GeometryProvider.points.size(); index++) {
+            Point point = GeometryProvider.points.get(index);
+            //PlacemarkType type = PlacemarkType.values()[new Random().nextInt(PlacemarkType.values().length)];
+            PlacemarkType type = PlacemarkType.values()[0];
+            ImageProvider imageProvider = (ImageProvider) placemarkTypeToImageProvider.get(type);
+
+            if (imageProvider == null) { continue; }
+
+            PlacemarkMapObject placemark = clusterizedCollection.addPlacemark();
+            placemark.setGeometry(point);
+            placemark.setIcon(imageProvider);
+            placemark.setIconStyle(new IconStyle().setScale(0.1f));
+            placemark.setUserData(new PlacemarkUserData("Data_" + index, type));
+            placemark.addTapListener(placemarkTapListener);
+        }
+
+        clusterizedCollection.clusterPlacemarks(20, 15);
+    }
+
+    private void searchActivity() {
         // Находим searchInput и searchButton, используя binding
         searchInput = binding.searchInput;
         searchButton = binding.searchButton;
-
 
         // Делаем поле поиска видимым
         searchInput.setVisibility(View.VISIBLE);
         searchButton.setVisibility(View.VISIBLE);
 
-        // Инициализация репозитория
-        repository = new EntertainmentRepository(RetrofitClient.getApiService());
-
         // Обработчик кнопки поиска
-        searchButton.setOnClickListener(v -> performSearch());
-
-
-        mapView = binding.mapview;
-        final Map map = mapView.getMapWindow().getMap();
-        map.move(
-                new CameraPosition(
-                        new Point(53.211785, 50.179790),
-                        17.0f,
-                        150.0f,
-                        30.0f
-                )
-        );
-
-
-        return root;
+        searchButton.setOnClickListener(v ->
+                searchManager.performSearch(searchInput.getText().toString()));
     }
 
 
-    private void performSearch() {
-        String query = searchInput.getText().toString().trim();
-
-        if (query.isEmpty()) {
-            Toast.makeText(requireContext(), "Введите поисковый запрос", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // Показываем индикатор загрузки (если есть)
-        showLoading(true);
-
-        repository.search(
-                query,          // name
-                null,          // category
-                0f,           // minRating
-                0,            // page
-                20,           // size
-                "rating",     // sortBy
-                SortDirection.DESC, // direction
-                new EntertainmentRepository.ApiCallback<ApiPageResponse<EntertainmentMap>>() {
-                    @Override
-                    public void onSuccess(ApiPageResponse<EntertainmentMap> page) {
-                        requireActivity().runOnUiThread(() -> {
-                            showLoading(false);
-                            processSearchResults(page.getContent());
-                        });
-                    }
-
-                    @Override
-                    public void onError(String error) {
-                        requireActivity().runOnUiThread(() -> {
-                            showLoading(false);
-                            Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show();
-                        });
-                    }
-                }
-        );
-    }
-
-    private void showLoading(boolean isLoading) {
-        // Реализуйте отображение/скрытие ProgressBar
-        // Например:
-        // binding.progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
-    }
-
-    private void processSearchResults(List<EntertainmentMap> results) {
+    // Реализация методов SearchResultListener
+    @Override
+    public void onSearchResults(List<EntertainmentMap> results) {
         if (results == null || results.isEmpty()) {
             Toast.makeText(requireContext(), "Ничего не найдено", Toast.LENGTH_SHORT).show();
             return;
         }
 
+        // Вот тут обработка результата
         EntertainmentMap firstResult = results.get(0);
         Toast.makeText(requireContext(),"Найдено: " + firstResult.getName() + " (" + firstResult.getRating() + ")", Toast.LENGTH_SHORT).show();
 
+    }
 
-        // Пример: Переход на FindPlaceActivity с передачей данных
-        //Intent intent = new Intent(requireActivity(), MainActivity3.class);
+    @Override
+    public void onSearchError(String error) {
+        Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show();
+    }
 
-//        // Если нужно передать данные (например, первый результат или весь список)
-//        intent.putExtra("first_place_name", results.get(0).getName());
-//        intent.putExtra("first_place_lat", results.get(0).getLatitude());
-//        intent.putExtra("first_place_lon", results.get(0).getLongitude());
-//
-//        // Или передать весь список (если EntertainmentMap implements Serializable)
-//        intent.putExtra("all_places", new ArrayList<>(results));
+    // под вопросом
+    @Override
+    public void onLoading(boolean isLoading) {
+        // binding.progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+    }
+    //
 
-        //startActivity(intent);
-        // Обработка результатов поиска:
-        // 1. Добавление маркеров на карту.
-        // 2. Обновление списка мест (если есть RecyclerView).
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        searchManager = new SearchManager(requireContext(), this);
     }
 
 
