@@ -120,4 +120,27 @@
             tools:text="0" />
     </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/layout_blue_group"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_gravity="center_vertical"
+            android:scaleType="fitXY"
+            android:src="@drawable/pin_blue" />
+
+        <TextView
+            android:id="@+id/text_blue_pins"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="2dp"
+            android:textColor="@color/black"
+            android:textSize="18sp"
+            tools:text="0" />
+    </LinearLayout>
+
 </merge>

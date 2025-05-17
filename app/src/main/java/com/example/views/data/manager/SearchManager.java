@@ -14,8 +14,6 @@ import com.example.views.data.model.*;
 import java.util.List;
 
 
-
-
 public class SearchManager {
     private static final int DEFAULT_PAGE = 0;
     private static final int DEFAULT_PAGE_SIZE = 20;
@@ -29,6 +27,7 @@ public class SearchManager {
 
     public interface SearchResultListener {
         void onSearchResults(List<EntertainmentMap> results);
+        void onSearchAllResults(List<EntertainmentMap> results);
         void onSearchError(String error);
         void onLoading(boolean isLoading);
     }
@@ -37,6 +36,24 @@ public class SearchManager {
         this.context = context;
         this.listener = listener;
         this.repository = new EntertainmentRepository(RetrofitClient.getApiService());
+    }
+
+    public void getAllPlaces() {
+        listener.onLoading(true);
+
+        repository.getAll(new EntertainmentRepository.ApiCallback<List<EntertainmentMap>>() {
+            @Override
+            public void onSuccess(List<EntertainmentMap> places) {
+                listener.onLoading(false); // Загрузка завершена
+                listener.onSearchAllResults(places); // Передаем результаты
+            }
+
+            @Override
+            public void onError(String error) {
+                listener.onLoading(false); // Загрузка завершена (с ошибкой)
+                listener.onSearchError("Не удалось загрузить места: " + error); // Передаем ошибку
+            }
+        });
     }
 
     public void performSearch(String query) {

@@ -1,5 +1,7 @@
 package com.example.views.data.model;
 
+import com.example.views.map.placemark.PlacemarkType;
+import com.yandex.mapkit.geometry.Point;
 public class EntertainmentMap {
     private Long id;
     private String name;
@@ -12,20 +14,8 @@ public class EntertainmentMap {
     private Float rating;
     private Integer number_of_reviews;
     private String location;
-
-    public Double getLatitude() {
-        if (location != null && location.contains(",")) {
-            return Double.parseDouble(location.split(",")[0]);
-        }
-        return null;
-    }
-
-    public Double getLongitude() {
-        if (location != null && location.contains(",")) {
-            return Double.parseDouble(location.split(",")[1]);
-        }
-        return null;
-    }
+    private Float latitude;
+    private Float longitude;
 
     public String getLocation() {
         return location;
@@ -114,4 +104,72 @@ public class EntertainmentMap {
     public void setNumber_of_reviews(Integer number_of_reviews) {
         this.number_of_reviews = number_of_reviews;
     }
+
+    public Float getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(Float latitude) {
+        this.latitude = latitude;
+    }
+
+    public Float getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(Float longitude) {
+        this.longitude = longitude;
+    }
+
+    public EntertainmentMap(EntertainmentMap other) {
+        this.id = other.id;
+        this.name = other.name;
+        this.description = other.description;
+        this.address = other.address;
+        this.category_id = other.category_id;
+        this.working_hours_id = other.working_hours_id;
+        this.phone_number = other.phone_number;
+        this.website = other.website;
+        this.rating = other.rating;
+        this.number_of_reviews = other.number_of_reviews;
+        this.location = other.location;
+        this.latitude = other.latitude;
+        this.longitude = other.longitude;
+    }
+
+
+    public Point getPoint(){
+        return new Point (this.getLatitude(), this.getLongitude());
+    }
+
+    // Дописать
+    @Override
+    public String toString() {
+        return  "name='" + name + '\'' +
+                ", address=" + address;
+    }
+
+    public PlacemarkType getType() {
+
+        switch (this.category_id) {
+            case 1:
+            case 2:
+                return PlacemarkType.BROWN;
+            case 11:
+                return PlacemarkType.GREEN;
+            case 14:
+                return PlacemarkType.ORANGE;
+            case 7:
+                return PlacemarkType.PINK;
+            case 3:
+            case 5:
+                return PlacemarkType.BLUE;
+            case 13:
+                return PlacemarkType.PURPLE;
+
+            default:
+                throw new IllegalStateException("Unexpected value: " + this.category_id);
+        }
+    }
+
 }
