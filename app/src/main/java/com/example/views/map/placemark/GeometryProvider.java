@@ -1,106 +1,149 @@
 package com.example.views.map.placemark;
 
-import com.yandex.mapkit.geometry.Circle;
-import com.yandex.mapkit.geometry.LinearRing;
+import com.example.views.data.model.EntertainmentMap;
 import com.yandex.mapkit.geometry.Point;
-import com.yandex.mapkit.geometry.Polygon;
-import com.yandex.mapkit.geometry.Polyline;
 import com.yandex.mapkit.map.CameraPosition;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
 
 public class GeometryProvider {
-
-    public static final CameraPosition startPosition = new CameraPosition(
+    private static final CameraPosition startPosition = new CameraPosition(
             new Point(53.19, 50.118),
             13.5f,
             310.0f,
             0.0f);
 
-    public static List<Point> pointsBrown = Arrays.asList(
-            new Point ( 53.247228, 50.173453 ),
-            new Point ( 53.212428, 50.177079 ),
-            new Point ( 53.191249, 50.108682 ),
-            new Point ( 53.202182, 50.119834 ),
-            new Point ( 53.194242, 50.096508 ),
-            new Point ( 53.215930, 50.148801 ),
-            new Point ( 53.196730, 50.098088 ),
-            new Point ( 53.192788, 50.110537 )
-    );
-    public static List<Point> pointsGreen = Arrays.asList(
-            new Point ( 53.230628, 50.199031 ),
-            new Point ( 53.193613, 50.203055 ),
-            new Point ( 53.216578, 50.179640 ),
-            new Point ( 53.230594, 50.164527 ),
-            new Point ( 53.197680, 50.094005 )
-            // плюс набережная?
-    );
-    public static List<Point> pointsOrange = Arrays.asList(
-            new Point ( 53.184465, 50.105701 ),
-            new Point ( 53.186913, 50.097748 ),
-            new Point ( 53.196957, 50.112198 ),
-            new Point ( 53.198818, 50.110775 ),
-            new Point ( 53.189679, 50.089881 )
-    );
-    public static List<Point> pointsPink = Arrays.asList(
-            new Point ( 53.188573, 50.098639 ),
-            new Point ( 53.205481, 50.125994 ),
-            new Point ( 53.203256, 50.142184 ),
-            new Point ( 53.198610, 50.115319 ),
-            new Point ( 53.192136, 50.102605 )
-    );
-    public static List<Point> pointsPurple = Arrays.asList(
-            new Point ( 53.212447, 50.153643 ),
-            new Point ( 53.211056, 50.159051 ),
-            new Point ( 53.216098, 50.159114 )
-    );
-    public static List<Point> pointsBlue = Arrays.asList(
-            new Point ( 53.197639, 50.097324 ),
-            new Point ( 53.188821, 50.102783 ),
-            new Point ( 53.191572, 50.094899 )
-    );
+    private static List<EntertainmentMap> placesBrown = new ArrayList<>();
+    private static List<EntertainmentMap> placesGreen = new ArrayList<>();
+    private static List<EntertainmentMap> placesOrange = new ArrayList<>();
+    private static List<EntertainmentMap> placesPink = new ArrayList<>();
+    private static List<EntertainmentMap> placesPurple = new ArrayList<>();
+    private static List<EntertainmentMap> placesBlue = new ArrayList<>();
 
-    public static List<List<Point>> points = Arrays.asList(
-            pointsBrown, pointsGreen, pointsOrange, pointsPink, pointsPurple, pointsBlue);
+    private static List<List<EntertainmentMap>> points = Arrays.asList(
+            placesBrown, placesGreen, placesOrange, placesPink, placesPurple, placesBlue);
 
-    /*
-                //грин
-            new Point ( 53.230628, 50.199031 ),
-            new Point ( 53.193613, 50.203055 ),
-            new Point ( 53.216578, 50.179640 ),
-            new Point ( 53.230594, 50.164527 ),
-            new Point ( 53.197680, 50.094005 ),
-            //брауни – музеи
-            new Point ( 53.247228, 50.173453 ),
-            new Point ( 53.212428, 50.177079 ),
-            new Point ( 53.191249, 50.108682 ),
-            new Point ( 53.202182, 50.119834 ),
-            new Point ( 53.194242, 50.096508 ),
-            new Point ( 53.215930, 50.148801 ),
-            new Point ( 53.196730, 50.098088 ),
-            new Point ( 53.192788, 50.110537 ),
-            //оранжевый – квесты
-            new Point ( 53.184465, 50.105701 ),
-            new Point ( 53.186913, 50.097748 ),
-            new Point ( 53.196957, 50.112198 ),
-            new Point ( 53.198818, 50.110775 ),
-            new Point ( 53.189679, 50.089881 ),
-            //розовый – бары
-            new Point ( 53.188573, 50.098639 ),
-            new Point ( 53.205481, 50.125994 ),
-            new Point ( 53.203256, 50.142184 ),
-            new Point ( 53.198610, 50.115319 ),
-            new Point ( 53.192136, 50.102605 ),
-            //пурпур – мк
-            new Point ( 53.212447, 50.153643 ),
-            new Point ( 53.211056, 50.159051 ),
-            new Point ( 53.216098, 50.159114 ),
-            //синий – театры
-            new Point ( 53.197639, 50.097324 ),
-            new Point ( 53.188821, 50.102783 ),
-            new Point ( 53.191572, 50.094899 )
-     */
+    private static boolean checkForNewIcon = false;
+
+    // getter&setter
+    public static CameraPosition getStartPosition(){
+        return startPosition;
+    }
+
+    public static List<EntertainmentMap> getPlacesBrown() {
+        return placesBrown;
+    }
+
+    public static void setPlacesBrown(List<EntertainmentMap> placesBrown) {
+        GeometryProvider.placesBrown = placesBrown != null ? placesBrown : new ArrayList<>();
+        updatePointsList();
+    }
+
+    public static List<EntertainmentMap> getPlacesGreen() {
+        return placesGreen;
+    }
+
+    public static void setPlacesGreen(List<EntertainmentMap> placesGreen) {
+        GeometryProvider.placesGreen = placesGreen != null ? placesGreen : new ArrayList<>();
+        updatePointsList();
+    }
+
+    public static List<EntertainmentMap> getPlacesOrange() {
+        return placesOrange;
+    }
+
+    public static void setPlacesOrange(List<EntertainmentMap> placesOrange) {
+        GeometryProvider.placesOrange = placesOrange != null ? placesOrange : new ArrayList<>();
+        updatePointsList();
+    }
+
+    public static List<EntertainmentMap> getPlacesPink() {
+        return placesPink;
+    }
+
+    public static void setPlacesPink(List<EntertainmentMap> placesPink) {
+        GeometryProvider.placesPink = placesPink != null ? placesPink : new ArrayList<>();
+        updatePointsList();
+    }
+
+    public static List<EntertainmentMap> getPlacesPurple() {
+        return placesPurple;
+    }
+
+    public static void setPlacesPurple(List<EntertainmentMap> placesPurple) {
+        GeometryProvider.placesPurple = placesPurple != null ? placesPurple : new ArrayList<>();
+        updatePointsList();
+    }
+
+    public static List<EntertainmentMap> getPlacesBlue() {
+        return placesBlue;
+    }
+
+    public static void setPlacesBlue(List<EntertainmentMap> placesBlue) {
+        GeometryProvider.placesBlue = placesBlue != null ? placesBlue : new ArrayList<>();
+        updatePointsList();
+    }
+
+    public static List<List<EntertainmentMap>> getPoints() {
+        checkForNewIcon = false;
+        return points;
+    }
+
+    public static void setPoints(List<List<EntertainmentMap>> points) {
+        GeometryProvider.points = points != null ? points : new ArrayList<>();
+    }
+
+    private static void updatePointsList() {
+        points = Arrays.asList(placesBrown, placesGreen, placesOrange, placesPink, placesPurple, placesBlue);
+    }
+
+    public static void createAndSetPointsColor(List<EntertainmentMap> results) {
+        checkForNewIcon = true;
+        // Очищаем все списки перед заполнением
+        placesBrown.clear();
+        placesGreen.clear();
+        placesOrange.clear();
+        placesPink.clear();
+        placesPurple.clear();
+        placesBlue.clear();
+
+        if (results == null) return;
+
+        for (EntertainmentMap place : results) {
+            int category_place = place.getCategory_id();
+            switch (category_place) {
+                case 1:
+                case 2:
+                    placesBrown.add(place);
+                    break;
+                case 11:
+                    placesGreen.add(place);
+                    break;
+                case 14:
+                    placesOrange.add(place);
+                    break;
+                case 7:
+                    placesPink.add(place);
+                    break;
+                case 3:
+                case 5:
+                    placesBlue.add(place);
+                    break;
+                case 13:
+                    placesPurple.add(place);
+                    break;
+            }
+        }
+        updatePointsList();
+    }
+
+    public static boolean isCheckForNewIcon() {
+        return checkForNewIcon;
+    }
+
+    public static void setCheckForNewIcon(boolean checkForNewIcon) {
+        GeometryProvider.checkForNewIcon = checkForNewIcon;
+    }
 }

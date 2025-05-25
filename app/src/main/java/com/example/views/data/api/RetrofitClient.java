@@ -5,11 +5,10 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 import java.util.concurrent.TimeUnit;
 
-import com.example.views.data.api.*;
 
 // lt --port 8080
 public class RetrofitClient {
-    private static final String BASE_URL = "http://192.168.56.1:8080/"; // http://192.168.56.1:8080/
+    private static final String BASE_URL = "https://large-mangos-make.loca.lt"; // http://192.168.56.1:8080/
     private static Retrofit retrofit = null;
 
     public static EntertainmentApiService getApiService() {

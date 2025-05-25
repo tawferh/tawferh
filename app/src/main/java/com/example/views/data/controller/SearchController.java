@@ -5,7 +5,7 @@ import android.content.Context;
 import android.widget.Toast;
 
 import com.example.views.map.manager.MapManager;
-import com.example.views.map.placemark.GeometryProvider2;
+import com.example.views.map.placemark.GeometryProvider;
 
 // Search import
 import com.example.views.data.model.*;
@@ -19,6 +19,7 @@ public class SearchController implements SearchManager.SearchResultListener {
     private MapManager mapManager;
     private Context context;
 
+    private boolean checkMap = true;
 
     public SearchController(Context context, MapManager mapManager) {
         this.context = context;
@@ -26,24 +27,17 @@ public class SearchController implements SearchManager.SearchResultListener {
         this.searchManager = new SearchManager(context, this);
     }
 
-    public SearchController(Context context) {
-        this.context = context;
-        this.searchManager = new SearchManager(context, this);
-    }
-
     public void performSearch(String query) {
         if (query.isEmpty()) {
             Toast.makeText(context, "Введите запрос", Toast.LENGTH_SHORT).show();
+            if (!checkMap){
+                mapManager.updateAllPlacemarks();
+                checkMap = true;
+            }
             return;
         }
         searchManager.performSearch(query);
     }
-
-
-    public void setMapManager(MapManager mapManager) {
-        this.mapManager = mapManager;
-    }
-
 
     public void loadAllPlaces() {
         searchManager.getAllPlaces();
@@ -57,16 +51,14 @@ public class SearchController implements SearchManager.SearchResultListener {
         }
 
         // Вот тут обработка результата
+        checkMap = false;
         if (results.size() == 1) {
             EntertainmentMap place = results.get(0);
             mapManager.moveCamera(place.getPoint());
             Toast.makeText(context, "Найдено: " + place.getName() + " (" + place.getRating() + "⭐)", Toast.LENGTH_SHORT).show();
         }
         else {
-            for (int i = 0; i < results.size(); i++) {
-                EntertainmentMap place = results.get(i);
-                Toast.makeText(context, "Найдено: " + place.getName() + " (" + place.getRating() + "⭐)", Toast.LENGTH_SHORT).show();
-            }
+            mapManager.addOnlyOneMultiplePlacemarks(results);
         }
 
     }
@@ -79,7 +71,7 @@ public class SearchController implements SearchManager.SearchResultListener {
         }
 
         // Создаем и устанавливаем точки
-        GeometryProvider2.createAndSetPointsColor(results);
+        GeometryProvider.createAndSetPointsColor(results);
 
         // Теперь отображаем метки, так как данные загружены
         if (mapManager != null) mapManager.updateAllPlacemarks();

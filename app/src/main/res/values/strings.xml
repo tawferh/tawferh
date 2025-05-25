@@ -6,6 +6,8 @@
     <string name="title_dashboard">Избранное</string>
     <string name="title_places">Места</string>
 
+    <string name="place_image_desc">Изображение места</string>
+
     <string-array name="mesta1">
         <item>Парк Гагарина</item>
         <item>Набережная</item>

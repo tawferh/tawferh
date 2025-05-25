@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -15,7 +14,6 @@ import com.example.views.data.controller.SearchController;
 import com.example.views.databinding.FragmentHomeBinding;
 
 import com.example.views.map.manager.MapManager;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 
 public class HomeFragment extends Fragment {
@@ -35,7 +33,6 @@ public class HomeFragment extends Fragment {
         isDataLoaded = false;
     }
 
-
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
@@ -43,7 +40,7 @@ public class HomeFragment extends Fragment {
         View root = binding.getRoot();
 
         // инициализация карты и поиска
-        mapManager = new MapManager(binding.mapview, requireContext());
+        mapManager = new MapManager(requireContext(), binding.mapview);
         searchController = new SearchController(requireContext(), mapManager);
 
         // взаимодействие с поисковой строкой
@@ -69,7 +66,6 @@ public class HomeFragment extends Fragment {
         binding.searchButton.setVisibility(View.VISIBLE);
         binding.searchButton.setOnClickListener(this::onSearchClicked);
     }
-
     private void onSearchClicked(View v) {
         String query = binding.searchInput.getText().toString().trim();
         if (searchController != null) {
@@ -84,13 +80,11 @@ public class HomeFragment extends Fragment {
         if (mapManager != null) mapManager.onStart();
     }
 
-
     @Override
     public void onStop() {
         if (mapManager != null) mapManager.onStop();
         super.onStop();
     }
-
 
     @Override
     public void onDestroyView() {
